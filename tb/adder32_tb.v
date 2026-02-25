@@ -15,6 +15,8 @@ adder32 uut (
 );
 
 initial begin
+    $dumpfile("wave.vcd");
+$dumpvars(0);
     a = 32'd10; b = 32'd20;
     #10;
 
