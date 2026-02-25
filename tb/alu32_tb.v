@@ -17,6 +17,8 @@ alu32 uut (
 );
 
 initial begin
+    $dumpfile("wave.vcd");
+$dumpvars(0);
     a = 32'd15; b = 32'd5;
 
     alu_control = 3'b000; #10; // ADD
