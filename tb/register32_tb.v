@@ -18,6 +18,8 @@ register32 uut (
 always #5 clk = ~clk;
 
 initial begin
+    $dumpfile("wave.vcd");
+$dumpvars(0);
     clk = 0;
     reset = 1;
     d = 32'd0;
