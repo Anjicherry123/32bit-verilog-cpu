@@ -1,31 +1,51 @@
-`timescale 1ns/1ps
-
-module simple_cpu_tb;
-
-reg clk;
-reg reset;
-
-simple_cpu uut (
-    .clk(clk),
-    .reset(reset)
+module simple_cpu(
+    input clk,
+    input reset
 );
 
-// clock generation
-always #5 clk = ~clk;
+// ===== wires =====
+wire [31:0] pc_current;
+wire [31:0] pc_next;
+wire [31:0] instruction;
+wire [31:0] rd1, rd2;
+wire [31:0] alu_result;
 
-initial begin
-    $dumpfile("cpu_wave.vcd");
-    $dumpvars(0, simple_cpu_tb);
+// ===== PC =====
+pc pc_inst (
+    .clk(clk),
+    .reset(reset),
+    .next_pc(pc_next),
+    .current_pc(pc_current)
+);
 
-    clk = 0;
-    reset = 1;
+// ===== Instruction Memory =====
+instruction_memory imem (
+    .address(pc_current),
+    .instruction(instruction)
+);
 
-    #10;
-    reset = 0;
+// ===== Register File =====
+register_file rf (
+    .clk(clk),
+    .we(1'b1), // always write (simple design)
+    .rs1(instruction[19:15]),
+    .rs2(instruction[24:20]),
+    .rd(instruction[11:7]),
+    .wd(alu_result),
+    .rd1(rd1),
+    .rd2(rd2)
+);
 
-    #200;
+// ===== ALU =====
+alu32 alu_inst (
+    .a(rd1),
+    .b(rd2),
+    .alu_control(3'b000), // only ADD
+    .result(alu_result),
+    .zero()
+);
 
-    $finish;
-end
+// ===== PC increment =====
+assign pc_next = pc_current + 4;
 
 endmodule
