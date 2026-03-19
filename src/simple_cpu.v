@@ -5,10 +5,11 @@ module simple_cpu(
 
 wire [31:0] pc_current;
 wire [31:0] pc_next;
+wire [31:0] instruction;
+wire [31:0] rd1, rd2;
 wire [31:0] alu_result;
-wire zero;
 
-// PC instance
+// PC
 pc pc_inst (
     .clk(clk),
     .reset(reset),
@@ -16,15 +17,34 @@ pc pc_inst (
     .current_pc(pc_current)
 );
 
-// ALU used as PC + 4 adder
-alu32 alu_inst (
-    .a(pc_current),
-    .b(32'd4),
-    .alu_control(3'b000), // ADD
-    .result(alu_result),
-    .zero(zero)
+// Instruction Memory
+instruction_memory imem (
+    .address(pc_current),
+    .instruction(instruction)
 );
 
-assign pc_next = alu_result;
+// Register File
+register_file rf (
+    .clk(clk),
+    .we(1'b1),
+    .rs1(instruction[19:15]),
+    .rs2(instruction[24:20]),
+    .rd(instruction[11:7]),
+    .wd(alu_result),
+    .rd1(rd1),
+    .rd2(rd2)
+);
+
+// ALU
+alu32 alu_inst (
+    .a(rd1),
+    .b(rd2),
+    .alu_control(3'b000), // ADD only
+    .result(alu_result),
+    .zero()
+);
+
+// PC increment
+assign pc_next = pc_current + 4;
 
 endmodule
